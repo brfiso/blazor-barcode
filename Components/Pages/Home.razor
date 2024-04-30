@@ -1,0 +1,56 @@
+﻿@page "/"
+@using System.Reflection
+@rendermode InteractiveServer
+<div class="d-block">
+    <button @onclick="StartScanner">Start Scanner</button>
+    <button @onclick="StopScanner">Stop Scanner</button>
+    <br/>
+    <input type="text" id="txtBarcode" class="form-control" placeholder="Barcode" disabled="disabled"/>
+</div>
+<div class="d-block">
+    <div id="barcode-scanner-container"></div>
+</div>
+
+@code {
+    [Inject]
+    protected IJSRuntime JSRuntime { get; set; }
+
+    private string scannedBarcode = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        Console.WriteLine(Assembly.GetExecutingAssembly().GetName().Name);
+
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("barcodeScanner.startScanner");
+        }
+    }    
+    
+    private async Task UpdateScannedBarcode(string barcode)
+    {
+        // Update the field value
+        scannedBarcode = barcode;
+
+        // Notify Blazor to re-render the component
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+
+    [JSInvokable]
+    public static async Task OnBarcodeScanned(string barcode)
+    {
+        Console.WriteLine(barcode);        
+    }
+
+    private async Task StartScanner()
+    {
+        await JSRuntime.InvokeVoidAsync("barcodeScanner.startScanner");
+    }
+
+    private async Task StopScanner()
+    {
+        await JSRuntime.InvokeVoidAsync("barcodeScanner.stopScanner");
+    }
+}
